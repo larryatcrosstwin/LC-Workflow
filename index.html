@@ -4,18 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#4f46e5">
-  <title>My To-Do List</title>
+  <title>My To-Do Board</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="app">
-    <h1>My To-Do List</h1>
+    <header class="top">
+      <h1>My To-Do Board</h1>
 
-    <!-- Shown when signed in: who you are and a sign-out button -->
-    <div id="account-bar" class="account-bar" hidden>
-      <span id="account-email"></span>
-      <button id="sign-out" type="button" class="link-button">Sign out</button>
-    </div>
+      <!-- Shown when signed in: who you are and a sign-out button -->
+      <div id="account-bar" class="account-bar" hidden>
+        <span id="account-email"></span>
+        <button id="sign-out" type="button" class="link-button">Sign out</button>
+      </div>
+    </header>
 
     <!-- Shown when signed out -->
     <section id="sign-in-panel" class="sign-in-panel" hidden>
@@ -25,30 +27,73 @@
 
     <p id="error-message" class="error-message" role="alert" hidden></p>
 
-    <!-- Everything in here is the list itself -->
     <section id="tasks-section" hidden>
+      <!-- Add a new task (it goes to the bottom of "Not started") -->
       <form id="task-form" class="task-form">
         <label for="task-input" class="visually-hidden">New task</label>
         <input id="task-input" type="text" placeholder="What do you need to do?" autocomplete="off" maxlength="200" required>
+        <label for="task-due" class="visually-hidden">Due date (optional)</label>
+        <input id="task-due" type="date" title="Due date (optional)">
         <button type="submit" class="primary-button">Add</button>
       </form>
 
-      <!-- The list of tasks is filled in by app.js -->
-      <ul id="task-list" class="task-list"></ul>
+      <p class="hint">Drag <span aria-hidden="true">⠿</span> to reorder or move between columns. Tap a task to edit it.</p>
 
-      <p id="empty-message" class="empty-message">No tasks yet. Add one above!</p>
-
-      <footer class="summary">
-        <span id="task-count"></span>
-        <button id="clear-completed" type="button" class="link-button">Clear completed</button>
-      </footer>
+      <!-- The three columns. app.js fills in the cards. -->
+      <div class="board">
+        <section class="column" data-status="todo">
+          <h2>Not started <span class="column-count" data-count="todo"></span></h2>
+          <ul class="card-list" data-status="todo"></ul>
+        </section>
+        <section class="column" data-status="doing">
+          <h2>In progress <span class="column-count" data-count="doing"></span></h2>
+          <ul class="card-list" data-status="doing"></ul>
+        </section>
+        <section class="column" data-status="done">
+          <h2>Completed <span class="column-count" data-count="done"></span></h2>
+          <ul class="card-list" data-status="done"></ul>
+          <button id="clear-completed" type="button" class="link-button clear-button">Clear completed</button>
+        </section>
+      </div>
 
       <p id="local-note" class="local-note" hidden>Tasks are saved on this device only.</p>
     </section>
 
-    <p id="loading-message" class="empty-message">Loading…</p>
+    <p id="loading-message" class="loading-message">Loading…</p>
   </main>
 
+  <!-- Pop-up for editing a task -->
+  <dialog id="edit-dialog" class="edit-dialog">
+    <form id="edit-form" method="dialog">
+      <h2>Edit task</h2>
+
+      <label for="edit-text">Task</label>
+      <input id="edit-text" type="text" maxlength="200" required autocomplete="off">
+
+      <label for="edit-due">Due date</label>
+      <div class="due-row">
+        <input id="edit-due" type="date">
+        <button id="edit-clear-due" type="button" class="link-button">Remove date</button>
+      </div>
+
+      <label for="edit-status">Column</label>
+      <select id="edit-status">
+        <option value="todo">Not started</option>
+        <option value="doing">In progress</option>
+        <option value="done">Completed</option>
+      </select>
+
+      <div class="dialog-buttons">
+        <button id="edit-delete" type="button" class="danger-button">Delete</button>
+        <span class="spacer"></span>
+        <button id="edit-cancel" type="button" class="secondary-button">Cancel</button>
+        <button type="submit" class="primary-button">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Drag-and-drop library (works with mouse and touch) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

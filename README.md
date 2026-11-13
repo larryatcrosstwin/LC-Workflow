@@ -1,6 +1,12 @@
-# My To-Do List
+# My To-Do Board
 
-A simple to-do list website. Add tasks, check them off, and delete them.
+A to-do board website with three columns: **Not started**, **In progress**
+and **Completed**.
+
+- Add tasks, with an optional due date (overdue tasks are shown in red)
+- Drag a task by its ⠿ handle to reorder it (higher = more important) or to
+  move it to another column; works with a mouse or a finger
+- Tap a task to edit its text, due date or column, or to delete it
 
 Live site: https://larryatcrosstwin.github.io/LC-Workflow/
 
@@ -34,7 +40,7 @@ The rules in `firestore.rules` are what make sure only you can see your tasks.
 
 - `index.html` – the page structure
 - `style.css` – how it looks (works on phones and computers, supports dark mode)
-- `app.js` – how it works (adding, checking off, deleting, saving and syncing tasks)
+- `app.js` – how it works (adding, editing, dragging, saving and syncing tasks)
 - `firebase-config.js` – your Firebase project settings
 - `firestore.rules` – database security rules (paste into the Firebase console)
 

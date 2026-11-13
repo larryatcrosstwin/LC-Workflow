@@ -2,12 +2,17 @@
 :root {
   --bg: #f4f4f8;
   --card: #ffffff;
+  --column: #e9e9f1;
   --text: #1f2937;
   --muted: #6b7280;
   --accent: #4f46e5;
   --accent-hover: #4338ca;
   --border: #e5e7eb;
   --danger: #dc2626;
+  --warning: #b45309;
+  --todo: #9ca3af;
+  --doing: #f59e0b;
+  --done: #10b981;
 }
 
 /* Dark mode follows the phone/computer setting */
@@ -15,17 +20,23 @@
   :root {
     --bg: #111827;
     --card: #1f2937;
+    --column: #172030;
     --text: #f3f4f6;
     --muted: #9ca3af;
     --border: #374151;
     --accent: #818cf8;
     --accent-hover: #6366f1;
     --danger: #f87171;
+    --warning: #fbbf24;
   }
 }
 
 * {
   box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 body {
@@ -38,122 +49,66 @@ body {
 }
 
 .app {
-  max-width: 560px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 16px;
+  padding: 24px 16px 48px;
 }
 
-h1 {
-  margin: 0 0 20px;
-  font-size: 1.8rem;
-}
-
-/* Add-task form */
-.task-form {
+/* Title and account */
+.top {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 16px;
   margin-bottom: 20px;
 }
 
-.task-form input {
-  flex: 1;
-  min-width: 0;
-  padding: 12px 14px;
-  font-size: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--card);
-  color: var(--text);
+h1 {
+  margin: 0;
+  font-size: 1.8rem;
 }
 
-.task-form input:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+.account-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
 }
 
-.primary-button {
+/* Buttons */
+.primary-button,
+.secondary-button,
+.danger-button {
   padding: 12px 20px;
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
-  background: var(--accent);
-  border: none;
   border-radius: 10px;
   cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.primary-button {
+  color: #fff;
+  background: var(--accent);
 }
 
 .primary-button:hover {
   background: var(--accent-hover);
 }
 
-/* Task list */
-.task-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.secondary-button {
+  color: var(--text);
+  background: transparent;
+  border-color: var(--border);
 }
 
-.task {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  margin-bottom: 8px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-
-.task input[type="checkbox"] {
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-  accent-color: var(--accent);
-  cursor: pointer;
-}
-
-.task-text {
-  flex: 1;
-  overflow-wrap: anywhere;
-}
-
-.task.done .task-text {
-  text-decoration: line-through;
-  color: var(--muted);
-}
-
-.delete-button {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  font-size: 1.3rem;
-  line-height: 1;
-  color: var(--muted);
-  background: none;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.delete-button:hover {
+.danger-button {
   color: var(--danger);
-  background: var(--bg);
-}
-
-/* Empty state and footer */
-.empty-message {
-  text-align: center;
-  color: var(--muted);
-  padding: 24px 0;
-}
-
-.summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 12px;
-  color: var(--muted);
-  font-size: 0.9rem;
+  background: transparent;
+  border-color: var(--danger);
 }
 
 .link-button {
@@ -170,19 +125,253 @@ h1 {
   text-decoration: underline;
 }
 
-/* Sign-in, account and messages */
-.account-bar {
+/* Add-task form */
+.task-form {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 720px;
+}
+
+.task-form input,
+.edit-dialog input,
+.edit-dialog select {
+  padding: 12px 14px;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+}
+
+.task-form input:focus,
+.edit-dialog input:focus,
+.edit-dialog select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+#task-input {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+#task-due {
+  flex: 1 1 150px;
+  min-width: 0;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 10px 0 20px;
+}
+
+/* The board: three columns side by side, stacked on phones */
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .board {
+    grid-template-columns: 1fr;
+  }
+}
+
+.column {
+  background: var(--column);
+  border-radius: 12px;
+  padding: 12px;
+  border-top: 4px solid var(--todo);
+}
+
+.column[data-status="doing"] {
+  border-top-color: var(--doing);
+}
+
+.column[data-status="done"] {
+  border-top-color: var(--done);
+}
+
+.column h2 {
+  display: flex;
   align-items: center;
   gap: 8px;
-  margin: -8px 0 16px;
+  margin: 2px 4px 12px;
+  font-size: 1rem;
+}
+
+.column-count {
   color: var(--muted);
+  font-weight: 500;
   font-size: 0.9rem;
+}
+
+.card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-height: 56px; /* keeps empty columns big enough to drop into */
+}
+
+.card-list:empty::before {
+  content: "Drop tasks here";
+  display: block;
+  padding: 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+}
+
+.clear-button {
+  display: block;
+  margin: 8px auto 0;
+}
+
+/* A task card */
+.card {
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.drag-handle {
+  display: flex;
+  align-items: center;
+  padding: 0 6px 0 10px;
+  font-size: 1.2rem;
+  color: var(--muted);
+  cursor: grab;
+  touch-action: none; /* lets you drag on a phone without scrolling */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 12px 12px 12px 4px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.card-body:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.card-text {
   overflow-wrap: anywhere;
 }
 
+.status-done .card-text {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.due-badge {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.due-badge.soon {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.due-badge.overdue {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* While dragging */
+.drag-ghost {
+  opacity: 0.4;
+}
+
+.drag-chosen {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Edit pop-up */
+.edit-dialog {
+  width: min(440px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--text);
+}
+
+.edit-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.edit-dialog h2 {
+  margin: 0 0 16px;
+  font-size: 1.2rem;
+}
+
+.edit-dialog label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.edit-dialog #edit-text,
+.edit-dialog select {
+  width: 100%;
+}
+
+.due-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.due-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.dialog-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* Sign-in, messages */
 .sign-in-panel {
+  max-width: 480px;
+  margin: 0 auto;
   text-align: center;
   padding: 32px 16px;
   background: var(--card);
@@ -202,15 +391,15 @@ h1 {
   border: 1px solid var(--danger);
 }
 
+.loading-message,
 .local-note {
   text-align: center;
   color: var(--muted);
-  font-size: 0.85rem;
-  margin-top: 24px;
 }
 
-[hidden] {
-  display: none !important;
+.local-note {
+  font-size: 0.85rem;
+  margin-top: 24px;
 }
 
 /* Hides text visually but keeps it for screen readers */
