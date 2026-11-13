@@ -10,10 +10,10 @@
 // While apiKey still says "PASTE_...", the app keeps working in
 // "this device only" mode, saving tasks in the browser.
 export const firebaseConfig = {
-  apiKey: "PASTE_YOUR_API_KEY_HERE",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
+  apiKey: "AIzaSyDugZK60xSaln5_IbnnFjVLB4aTQL9GOUQ",
+  authDomain: "lc-task-tracker.firebaseapp.com",
+  projectId: "lc-task-tracker",
+  storageBucket: "lc-task-tracker.firebasestorage.app",
+  messagingSenderId: "836713259914",
+  appId: "1:836713259914:web:acfadf80767facc1d31e73",
 };
