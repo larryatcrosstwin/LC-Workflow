@@ -11,24 +11,44 @@
   <main class="app">
     <h1>My To-Do List</h1>
 
-    <!-- Form for adding a new task -->
-    <form id="task-form" class="task-form">
-      <label for="task-input" class="visually-hidden">New task</label>
-      <input id="task-input" type="text" placeholder="What do you need to do?" autocomplete="off" maxlength="200" required>
-      <button type="submit">Add</button>
-    </form>
+    <!-- Shown when signed in: who you are and a sign-out button -->
+    <div id="account-bar" class="account-bar" hidden>
+      <span id="account-email"></span>
+      <button id="sign-out" type="button" class="link-button">Sign out</button>
+    </div>
 
-    <!-- The list of tasks is filled in by app.js -->
-    <ul id="task-list" class="task-list"></ul>
+    <!-- Shown when signed out -->
+    <section id="sign-in-panel" class="sign-in-panel" hidden>
+      <p>Sign in to see your tasks on all your devices.</p>
+      <button id="sign-in" type="button" class="primary-button">Sign in with Google</button>
+    </section>
 
-    <p id="empty-message" class="empty-message">No tasks yet. Add one above!</p>
+    <p id="error-message" class="error-message" role="alert" hidden></p>
 
-    <footer class="summary">
-      <span id="task-count"></span>
-      <button id="clear-completed" type="button" class="link-button">Clear completed</button>
-    </footer>
+    <!-- Everything in here is the list itself -->
+    <section id="tasks-section" hidden>
+      <form id="task-form" class="task-form">
+        <label for="task-input" class="visually-hidden">New task</label>
+        <input id="task-input" type="text" placeholder="What do you need to do?" autocomplete="off" maxlength="200" required>
+        <button type="submit" class="primary-button">Add</button>
+      </form>
+
+      <!-- The list of tasks is filled in by app.js -->
+      <ul id="task-list" class="task-list"></ul>
+
+      <p id="empty-message" class="empty-message">No tasks yet. Add one above!</p>
+
+      <footer class="summary">
+        <span id="task-count"></span>
+        <button id="clear-completed" type="button" class="link-button">Clear completed</button>
+      </footer>
+
+      <p id="local-note" class="local-note" hidden>Tasks are saved on this device only.</p>
+    </section>
+
+    <p id="loading-message" class="empty-message">Loading…</p>
   </main>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
