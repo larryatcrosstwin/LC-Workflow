@@ -1,12 +1,19 @@
-# My To-Do Board
+# My Task Tracker
 
-A to-do board website with three columns: **Not started**, **In progress**
+A task board website with three columns: **Not started**, **In progress**
 and **Completed**.
 
 - Add tasks, with an optional due date (overdue tasks are shown in red)
 - Drag a task by its ⠿ handle to reorder it (higher = more important) or to
   move it to another column; works with a mouse or a finger
-- Tap a task to edit its text, due date or column, or to delete it
+- Tap a task to edit its text, project, due date or column, or to delete it
+- Give tasks a project and use the **Project** filter to see one project at a time
+
+## Add it to your iPhone home screen
+
+Open the live site in **Safari**, tap the **Share** button (square with an
+arrow), choose **Add to Home Screen**, then **Add**. It opens full-screen like
+an app. Sign in once inside the home-screen app.
 
 Live site: https://larryatcrosstwin.github.io/LC-Workflow/
 
@@ -43,6 +50,7 @@ The rules in `firestore.rules` are what make sure only you can see your tasks.
 - `app.js` – how it works (adding, editing, dragging, saving and syncing tasks)
 - `firebase-config.js` – your Firebase project settings
 - `firestore.rules` – database security rules (paste into the Firebase console)
+- `manifest.json`, `icons/` – app name and icon for the phone home screen
 
 ## Running it on your computer
 

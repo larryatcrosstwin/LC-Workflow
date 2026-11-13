@@ -4,13 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#4f46e5">
-  <title>My To-Do Board</title>
+  <title>My Task Tracker</title>
+  <meta name="description" content="Track tasks across Not started, In progress and Completed.">
+
+  <!-- Home-screen app settings (iPhone and Android) -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Tasks">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="app">
     <header class="top">
-      <h1>My To-Do Board</h1>
+      <h1>My Task Tracker</h1>
 
       <!-- Shown when signed in: who you are and a sign-out button -->
       <div id="account-bar" class="account-bar" hidden>
@@ -32,10 +43,20 @@
       <form id="task-form" class="task-form">
         <label for="task-input" class="visually-hidden">New task</label>
         <input id="task-input" type="text" placeholder="What do you need to do?" autocomplete="off" maxlength="200" required>
+        <label for="task-project" class="visually-hidden">Project (optional)</label>
+        <input id="task-project" type="text" placeholder="Project (optional)" list="project-names" autocomplete="off" maxlength="60">
         <label for="task-due" class="visually-hidden">Due date (optional)</label>
         <input id="task-due" type="date" title="Due date (optional)">
         <button type="submit" class="primary-button">Add</button>
       </form>
+
+      <!-- Suggestions for the project boxes, filled in by app.js -->
+      <datalist id="project-names"></datalist>
+
+      <div class="toolbar">
+        <label for="project-filter" class="filter-label">Project</label>
+        <select id="project-filter"></select>
+      </div>
 
       <p class="hint">Drag <span aria-hidden="true">⠿</span> to reorder or move between columns. Tap a task to edit it.</p>
 
@@ -69,6 +90,9 @@
 
       <label for="edit-text">Task</label>
       <input id="edit-text" type="text" maxlength="200" required autocomplete="off">
+
+      <label for="edit-project">Project</label>
+      <input id="edit-project" type="text" placeholder="No project" list="project-names" autocomplete="off" maxlength="60">
 
       <label for="edit-due">Due date</label>
       <div class="due-row">

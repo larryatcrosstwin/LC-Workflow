@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#4f46e5"/>
+  <!-- three columns -->
+  <rect x="96"  y="120" width="88" height="272" rx="18" fill="#ffffff" opacity="0.35"/>
+  <rect x="212" y="120" width="88" height="272" rx="18" fill="#ffffff" opacity="0.6"/>
+  <rect x="328" y="120" width="88" height="272" rx="18" fill="#ffffff"/>
+  <!-- check mark on the last column -->
+  <path d="M346 258 l22 22 l34 -44" fill="none" stroke="#4f46e5" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

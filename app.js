@@ -6,6 +6,13 @@ const FIREBASE_URL = "https://www.gstatic.com/firebasejs/10.12.2";
 // Where tasks are kept on this device when not syncing.
 const STORAGE_KEY = "todo-tasks";
 
+// Remembers which project filter you picked (on this device).
+const FILTER_KEY = "task-project-filter";
+
+// Special filter values (real project names are used as-is).
+const ALL = "__all__";
+const NO_PROJECT = "__none__";
+
 // The three columns, in order.
 const STATUSES = ["todo", "doing", "done"];
 
@@ -13,6 +20,9 @@ const $ = (id) => document.getElementById(id);
 const form = $("task-form");
 const input = $("task-input");
 const dueInput = $("task-due");
+const projectInput = $("task-project");
+const projectFilter = $("project-filter");
+const projectNames = $("project-names");
 const clearCompletedButton = $("clear-completed");
 const tasksSection = $("tasks-section");
 const signInPanel = $("sign-in-panel");
@@ -26,7 +36,8 @@ const lists = Object.fromEntries(
 );
 
 // Each task looks like:
-// { id, text, status: "todo" | "doing" | "done", order: 0, dueDate: "2026-11-20" or "", createdAt }
+// { id, text, project: "Work" or "", status: "todo" | "doing" | "done",
+//   order: 0, dueDate: "2026-11-20" or "", createdAt }
 // `order` is the position within its column (smaller = higher up = more important).
 let tasks = [];
 
@@ -39,12 +50,16 @@ let store = null;
 let dragging = false;
 let renderWaiting = false;
 
+// Which project is shown: ALL, NO_PROJECT or a project name.
+let filter = loadFilter();
+
 // Older tasks (from before the board) only had `done: true/false`.
 // This fills in the newer fields so they show up in the right column.
 function normalize(task) {
   return {
     id: task.id,
     text: task.text || "",
+    project: (task.project || "").trim(),
     status: STATUSES.includes(task.status) ? task.status : task.done ? "done" : "todo",
     order: typeof task.order === "number" ? task.order : task.createdAt || 0,
     dueDate: task.dueDate || "",
@@ -52,10 +67,88 @@ function normalize(task) {
   };
 }
 
+// All tasks in a column, in order (ignores the project filter).
 function tasksIn(status) {
   return tasks
     .filter((t) => t.status === status)
     .sort((a, b) => a.order - b.order || a.createdAt - b.createdAt);
+}
+
+// Does this task match the project filter?
+function isVisible(task) {
+  if (filter === ALL) return true;
+  if (filter === NO_PROJECT) return !task.project;
+  return task.project === filter;
+}
+
+function visibleIn(status) {
+  return tasksIn(status).filter(isVisible);
+}
+
+// Project names in alphabetical order, ignoring upper/lower case.
+function projectList() {
+  const names = [...new Set(tasks.map((t) => t.project).filter(Boolean))];
+  return names.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+}
+
+// Gives each project its own color, always the same for the same name.
+function projectHue(name) {
+  let hash = 0;
+  for (const ch of name) hash = (hash * 31 + ch.codePointAt(0)) % 360;
+  return hash;
+}
+
+// ---------- Project filter ----------
+
+function loadFilter() {
+  try {
+    return localStorage.getItem(FILTER_KEY) || ALL;
+  } catch {
+    return ALL;
+  }
+}
+
+function setFilter(value) {
+  filter = value;
+  try {
+    localStorage.setItem(FILTER_KEY, value);
+  } catch {
+    // Not important if it can't be remembered.
+  }
+  // New tasks go into the project you are looking at.
+  projectInput.value = filter === ALL || filter === NO_PROJECT ? "" : filter;
+  render();
+}
+
+projectFilter.addEventListener("change", () => setFilter(projectFilter.value));
+
+// Rebuilds the project drop-down and the typing suggestions.
+function renderProjectChoices() {
+  const projects = projectList();
+
+  // If the chosen project no longer has any tasks, go back to "All projects".
+  if (filter !== ALL && filter !== NO_PROJECT && !projects.includes(filter)) {
+    filter = ALL;
+  }
+
+  const count = (match) => tasks.filter(match).length;
+  const options = [
+    [ALL, `All projects (${tasks.length})`],
+    ...projects.map((name) => [name, `${name} (${count((t) => t.project === name)})`]),
+  ];
+  const withoutProject = count((t) => !t.project);
+  if (projects.length && withoutProject) {
+    options.push([NO_PROJECT, `No project (${withoutProject})`]);
+  }
+  if (filter === NO_PROJECT && !withoutProject) filter = ALL;
+
+  projectFilter.innerHTML = "";
+  for (const [value, label] of options) {
+    projectFilter.append(new Option(label, value, false, value === filter));
+  }
+
+  projectNames.innerHTML = "";
+  for (const name of projects) projectNames.append(new Option(name));
 }
 
 // Position for a task added to the bottom of a column.
@@ -99,9 +192,11 @@ function render() {
     return;
   }
 
+  renderProjectChoices();
+
   for (const status of STATUSES) {
     const list = lists[status];
-    const column = tasksIn(status);
+    const column = visibleIn(status);
     list.innerHTML = "";
 
     for (const task of column) {
@@ -111,7 +206,7 @@ function render() {
     document.querySelector(`[data-count="${status}"]`).textContent = column.length || "";
   }
 
-  clearCompletedButton.hidden = tasksIn("done").length === 0;
+  clearCompletedButton.hidden = visibleIn("done").length === 0;
 }
 
 function makeCard(task) {
@@ -137,13 +232,26 @@ function makeCard(task) {
   text.textContent = task.text; // textContent keeps typed HTML from running
   body.append(text);
 
+  const details = document.createElement("span");
+  details.className = "card-details";
+
+  if (task.project) {
+    const tag = document.createElement("span");
+    tag.className = "project-tag";
+    tag.textContent = task.project;
+    tag.style.setProperty("--hue", projectHue(task.project));
+    details.append(tag);
+  }
+
   const due = describeDue(task);
   if (due) {
     const badge = document.createElement("span");
     badge.className = `due-badge ${due.kind}`;
     badge.textContent = due.text;
-    body.append(badge);
+    details.append(badge);
   }
+
+  if (details.childElementCount) body.append(details);
 
   item.append(handle, body);
   return item;
@@ -199,13 +307,30 @@ function setUpDragAndDrop() {
 
 // After a drop, read the new order of cards straight from the page
 // and save any task whose column or position changed.
+//
+// When a project filter is on, some tasks are hidden. Hidden tasks keep
+// exactly the same spots; the visible tasks fill the other spots in their
+// new order (any extra ones go at the bottom of the column).
 function saveOrderFromBoard() {
-  const changes = [];
+  const byId = new Map(tasks.map((t) => [t.id, t]));
+  const newColumns = {};
 
   for (const status of STATUSES) {
-    [...lists[status].children].forEach((card, position) => {
-      const task = tasks.find((t) => t.id === card.dataset.id);
-      if (task && (task.status !== status || task.order !== position)) {
+    const shown = [...lists[status].children]
+      .map((card) => byId.get(card.dataset.id))
+      .filter(Boolean);
+
+    const column = tasksIn(status).map((task) => (isVisible(task) ? null : task));
+    for (let i = 0; i < column.length && shown.length; i++) {
+      if (column[i] === null) column[i] = shown.shift();
+    }
+    newColumns[status] = [...column.filter(Boolean), ...shown];
+  }
+
+  const changes = [];
+  for (const status of STATUSES) {
+    newColumns[status].forEach((task, position) => {
+      if (task.status !== status || task.order !== position) {
         task.status = status;
         task.order = position;
         changes.push({ id: task.id, fields: { status, order: position } });
@@ -227,6 +352,7 @@ form.addEventListener("submit", (event) => {
     run(
       store.add({
         text,
+        project: projectInput.value.trim(),
         status: "todo",
         order: nextOrder("todo"),
         dueDate: dueInput.value || "",
@@ -235,13 +361,16 @@ form.addEventListener("submit", (event) => {
     );
     input.value = "";
     dueInput.value = "";
+    // Keep the project filled in when you're looking at one project.
+    if (filter === ALL || filter === NO_PROJECT) projectInput.value = "";
     input.focus();
   }
 });
 
 clearCompletedButton.addEventListener("click", () => {
-  const done = tasksIn("done");
-  if (done.length && confirm(`Delete ${done.length} completed ${done.length === 1 ? "task" : "tasks"}?`)) {
+  const done = visibleIn("done");
+  const where = filter === ALL ? "" : filter === NO_PROJECT ? " with no project" : ` in "${filter}"`;
+  if (done.length && confirm(`Delete ${done.length} completed ${done.length === 1 ? "task" : "tasks"}${where}?`)) {
     run(store.removeMany(done.map((t) => t.id)));
   }
 });
@@ -251,6 +380,7 @@ clearCompletedButton.addEventListener("click", () => {
 const dialog = $("edit-dialog");
 const editText = $("edit-text");
 const editDue = $("edit-due");
+const editProject = $("edit-project");
 const editStatus = $("edit-status");
 let editingId = null;
 
@@ -259,6 +389,7 @@ function openEditor(id) {
   if (!task) return;
   editingId = id;
   editText.value = task.text;
+  editProject.value = task.project;
   editDue.value = task.dueDate;
   editStatus.value = task.status;
   dialog.showModal();
@@ -271,7 +402,7 @@ $("edit-form").addEventListener("submit", (event) => {
   const text = editText.value.trim();
   if (!task || !text) return;
 
-  const fields = { text, dueDate: editDue.value || "" };
+  const fields = { text, project: editProject.value.trim(), dueDate: editDue.value || "" };
   if (editStatus.value !== task.status) {
     // Moving to another column puts it at the bottom of that column.
     fields.status = editStatus.value;
@@ -437,6 +568,8 @@ async function moveLocalTasksOnline(db, firestore, taskDoc) {
 // ---------- Start ----------
 
 setUpDragAndDrop();
+// If a project was chosen last time, fill it into the "Project" box.
+if (filter !== ALL && filter !== NO_PROJECT) projectInput.value = filter;
 
 const syncIsSetUp = firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("PASTE");
 
