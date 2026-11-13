@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#4f46e5">
+  <title>My To-Do List</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <h1>My To-Do List</h1>
+
+    <!-- Form for adding a new task -->
+    <form id="task-form" class="task-form">
+      <label for="task-input" class="visually-hidden">New task</label>
+      <input id="task-input" type="text" placeholder="What do you need to do?" autocomplete="off" maxlength="200" required>
+      <button type="submit">Add</button>
+    </form>
+
+    <!-- The list of tasks is filled in by app.js -->
+    <ul id="task-list" class="task-list"></ul>
+
+    <p id="empty-message" class="empty-message">No tasks yet. Add one above!</p>
+
+    <footer class="summary">
+      <span id="task-count"></span>
+      <button id="clear-completed" type="button" class="link-button">Clear completed</button>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
